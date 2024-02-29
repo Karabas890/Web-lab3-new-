@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lab work #3 - Main page</title>
+    <h:outputStylesheet name="styles/main.css"/> <!-- Added styles from main.xhtml -->
+    <ui:insert name="styles"/>
+    <ui:insert name="scripts"/>
+    <h:outputScript name="scripts/canvas.js" target="body"/> <!-- Added script from main.xhtml -->
+</h:head>
+<p:growl id="msgs" showDetail="true" skipDetailIfEqualsSummary="true"/>
+<h:body style="background-image: url('resources/images/mainBackground.jpeg');
+background-size: cover;">
+    <header>
+        <div class="student-info">
+            <h2>Проверка попадания точки в граффик</h2>
+            <h2>Митичев Иван Дмитиевич, P3216</h2>
+            <h2>Вариант 23113</h2>
+        </div>
+    </header>
+    <script type="text/javascript">
+
+        window.onload = function () {
+            let initScale = 4;
+            var plot = new Plot("mainPlot", "plotContainer", 1, 400, 400);
+            let sliderHf = document.querySelector('[id*="rValue"]');
+            if (!sliderHf)
+                throw new Error("Не найдено поле сохначением R");
+            sliderHf.value = initScale;
+
+
+            plot.ChangeScale(initScale)
+            plot.DrawScene();
+
+
+            this.drawPlot = function () {
+                if (!plot)
+                    throw new Error("Не найден объект графика");
+                plot.DrawScene();
+            }
+
+            this.onRValueChanged = function () {
+                if (!plot)
+                    throw new Error("Не найден объект графика");
+                let sliderHf = document.querySelector('[id*="rValue"]');
+                if (!sliderHf)
+                    throw new Error("Не найдено поле сохначением R");
+                plot.ChangeScale(sliderHf.value);
+                plot.DrawScene();
+            }
+        }
+    </script>
+    <main>
+        <div class="main">
+            <div class="control" style="background-color: aliceblue">
+                <div id="plotContainer" class="plot">
+                    <!--                    <canvas id="plot__canvas" width="600" height="600"/>-->
+                </div>
+                <h:form id="shot_form" style="background-color: darkorchid">
+                    <div class="input-block">
+                        <p:outputLabel for="x" value="X:" styleClass="input-label" indicateRequired="false"/>
+                        <div class="input-group">
+                            <p:inputText id="x" value="#{dotManager.dot.x}" required="true"
+                                         styleClass="text-input" pt:placeholder="from -3.0 to 3.0"
+                                         pt:pattern="(?:-3|\+?3)(?:[.,]0{1,15})?|(?:-[43210]|\+?[012])(?:[.,]\d{1,15})?"
+                                         converter="XCoordinateConverter"/>
+                        </div>
+                    </div>
+                    <div class="input-block">
+                        <p:outputLabel for="y" value="Y:" styleClass="input-label" indicateRequired="false"/>
+                        <div class="input-group" style="display: block">
+                            <h:outputText id="y_output" value="#{dotManager.dot.y}"/>
+                            <h:inputHidden id="y" value="#{dotManager.dot.y}" required="true"/>
+                            <p:slider for="y" minValue="-2" maxValue="2" step="0.5"
+                                      display="y_output" displayTemplate="{value}"/>
+                        </div>
+                    </div>
+                    <div class="input-block">
+                        <!--   <p:outputLabel for="r" value="R:" styleClass="input-label" indicateRequired="false"/>
+                           <div class="input-group">
+                               <p:selectManyCheckbox id="r" value="#{dotManager.selectedR}" flex="true" required="true">
+                                   <f:selectItems value="#{dotManager.availableR}" var="r"
+                                                  itemLabel="#{r}" itemValue="#{r}"/>
+                                   <p:ajax event="change" oncomplete="rChanged()"/>
+                               </p:selectManyCheckbox>
+                           </div>-->
+                        <p:outputLabel for="rValue" value="R:" styleClass="input-label" indicateRequired="false"/>
+                        <div class="input-group" style="display: block">
+                            <h:outputText id="r_output" value="#{dotManager.dot.r}"/>
+                            <h:inputHidden id="rValue" value="#{dotManager.dot.r}" required="true"/>
+                            <p:slider id="rSlider" for="rValue" minValue="1" maxValue="4" step="0.25"
+                                      display="r_output" displayTemplate="{value}">
+                                <p:ajax event="slideEnd" oncomplete="onRValueChanged()"/>
+                            </p:slider>
+                        </div>
+                    </div>
+                    <p:commandButton value="Посчитать"
+                                     styleClass="button"
+                                     actionListener="#{dotManager.shoot()}"
+                                     oncomplete="drawPlot()"
+                                     update=":shot_table :msgs"/>
+                    <p:remoteCommand name="shoot"
+                                     actionListener="#{dotManager.shootPlot()}"
+                                     immediate="true"
+                                     oncomplete="drawPlot()"
+                                     update=":shot_table :msgs"/>
+                </h:form>
+                <p:link style="padding: 10px 20px;background-color: #2ecc71;color: #ffffff;border: none;border-radius: 5px;font-size: 18px;text-decoration: none;transition: background-color 0.3s;"
+                        outcome="goToIndex" class="btn btn-primary" value="INDEX"
+                        onmouseover="this.style.backgroundColor='#27ae60'"
+                        onmouseout="this.style.backgroundColor='#2ecc71'"/>
+            </div>
+            <div class="table">
+                <p:dataTable id="shot_table" value="#{dotManager.dots}" var="dot" sortMode="single"
+                             paginator="true" paginatorPosition="bottom" paginatorAlwaysVisible="false"
+                             rows="10" rowsPerPageTemplate="5,10,15"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
+                    <p:column headerText="Id" width="50" sortBy="#{dot.id}" sortOrder="desc">
+                        <h:outputText value="#{dot.id}"/>
+                    </p:column>
+                    <p:column headerText="Cordinates" width="220">
+<!--                        20 - plot base unit-->
+                        <h:inputHidden value="(#{dot.x}; #{dot.y}; #{dot.r})"/>
+                        <h:outputText value="(#{dot.r/20>1 ? dot.x/20 : dot.x}; #{dot.r/20>1 ?dot.y/20 : dot.y}; #{dot.r/20>1 ?dot.r/20 : dot.r})"/>
+                    </p:column>
+                    <p:column headerText="Time">
+                        <h:outputText value="#{dot.shotTime}"/>
+                    </p:column>
+                    <p:column headerText="Result">
+                        <h:outputText value="#{dot.inArea ? 'In' : 'Out'}"/>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </div>
+    </main>
+</h:body>
+</html>

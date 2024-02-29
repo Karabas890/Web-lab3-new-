@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lab work #3 - Home page</title>
+    <h:outputStylesheet name="styles/index.css"/>
+    <ui:insert name="styles"/>
+    <ui:insert name="scripts"/>
+</h:head>
+<p:growl id="msgs" showDetail="true" skipDetailIfEqualsSummary="true"/>
+<h:body style="background-image: url('resources/images/indexBackground.jpg');
+background-size: cover;">
+    <header>
+        <div class="student-info">
+            <h2>Проверка попадания точки в граффик</h2>
+            <h2>Митичев Иван Дмитиевич, P3216</h2>
+            <h2>Вариант 23113</h2>
+        </div>
+    </header>
+    <main>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 20px">
+            <h:outputText id="clock" style="font-size: 60px; color: #3498db;" value="#{clock.currentTime}"/>
+            <p:poll interval="13" listener="#{clock.updateTime()}" update="clock"/>
+            <p:link style="padding: 10px 20px;background-color: #2ecc71;color: #ffffff;border: none;border-radius: 5px;font-size: 18px;text-decoration: none;transition: background-color 0.3s;" outcome="goToMain" class="btn btn-primary" value="MAIN"
+                    onmouseover="this.style.backgroundColor='#27ae60'"
+                    onmouseout="this.style.backgroundColor='#2ecc71'"/>
+        </div>
+    </main>
+</h:body>
+</html>
